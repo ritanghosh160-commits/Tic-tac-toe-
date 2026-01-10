@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src='//libtl.com/sdk.js' data-zone='10442791' data-sdk='show_10442791'></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tic Tac Toe Neon</title>
@@ -178,26 +179,63 @@ function computerMove(){
     createBoard();
     checkWin("X");
 }
-
+function resetGame(){
+    board = Array(9).fill("");
+    gameOver=false;
+    statusEl.innerText="";
+    createBoard();
+}
 function checkWin(player){
     const wins=[
         [0,1,2],[3,4,5],[6,7,8],
         [0,3,6],[1,4,7],[2,5,8],
         [0,4,8],[2,4,6]
     ];
+
     for(let w of wins){
         if(w.every(i=>board[i]===player)){
             gameOver=true;
-            statusEl.innerText = (player==="O")?"🎉 You Win!":"🤖 Computer Wins!";
+            statusEl.innerText = (player==="O")
+                ? "🎉 You Win! Reward Unlocking..."
+                : "🤖 Computer Wins! Try Again";
+
             w.forEach(i=>boardEl.children[i].classList.add("win"));
+
+            // 👉 SHOW AD AFTER GAME END
+            setTimeout(()=>{
+                showRewardAd(()=>{
+                    resetGame();
+                });
+            },800);
+
             return true;
         }
     }
+
     if(!board.includes("")){
-        statusEl.innerText="😐 Draw!";
         gameOver=true;
+        statusEl.innerText="😐 Draw! Watch Ad to Play Again";
+
+        setTimeout(()=>{
+            showRewardAd(()=>{
+                resetGame();
+            });
+        },800);
     }
     return false;
+}
+    function showRewardAd(callback){
+    if (typeof show_10442791 === "function") {
+        show_10442791().then(() => {
+            // Ad completed
+            callback();
+        }).catch(() => {
+            // Ad failed
+            callback();
+        });
+    } else {
+        callback();
+    }
 }
 </script>
 
