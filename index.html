@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe Neon</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+body{
+    margin:0;
+    height:100vh;
+    background: radial-gradient(circle at top, #1b1464, #000);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:white;
+}
+
+/* HOME SCREEN */
+#home{
+    text-align:center;
+}
+#home h1{
+    font-size:2.2rem;
+    margin-bottom:30px;
+}
+#startBtn{
+    padding:15px 40px;
+    font-size:1.2rem;
+    border:none;
+    border-radius:30px;
+    background:linear-gradient(45deg,#00f2ff,#7d2ae8);
+    color:white;
+    cursor:pointer;
+    box-shadow:0 0 20px #00f2ff;
+}
+
+/* GAME SCREEN */
+#game{
+    display:none;
+    flex-direction:column;
+    align-items:center;
+}
+
+.top{
+    margin-bottom:15px;
+    font-size:1.2rem;
+}
+
+.board{
+    width:90vw;
+    max-width:320px;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    padding:12px;
+    border-radius:20px;
+    background:rgba(255,255,255,0.05);
+    box-shadow:0 0 25px #7d2ae8;
+}
+
+.cell{
+    aspect-ratio:1;
+    background:rgba(0,0,0,0.4);
+    border-radius:15px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:3rem;
+    cursor:pointer;
+}
+
+.O{
+    color:#00eaff;
+    text-shadow:0 0 15px #00eaff;
+}
+.X{
+    color:#ff8a8a;
+    text-shadow:0 0 15px #ff8a8a;
+}
+
+.win{
+    animation:glow 1s infinite alternate;
+}
+
+@keyframes glow{
+    from{box-shadow:0 0 10px #00f2ff;}
+    to{box-shadow:0 0 30px #00f2ff;}
+}
+
+#status{
+    margin-top:15px;
+    font-size:1.1rem;
+}
+
+#restart{
+    margin-top:15px;
+    padding:10px 25px;
+    border:none;
+    border-radius:20px;
+    background:#7d2ae8;
+    color:white;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HOME -->
+<div id="home">
+    <h1>🎮 Tic Tac Toe</h1>
+    <button id="startBtn">Start Game</button>
+</div>
+
+<!-- GAME -->
+<div id="game">
+    <div class="top">⭕ Player vs ❌ Computer</div>
+
+    <div class="board" id="board"></div>
+
+    <div id="status"></div>
+    <button id="restart">Restart</button>
+</div>
+
+<script>
+const home = document.getElementById("home");
+const game = document.getElementById("game");
+const boardEl = document.getElementById("board");
+const statusEl = document.getElementById("status");
+
+let board = Array(9).fill("");
+let gameOver = false;
+
+document.getElementById("startBtn").onclick = () => {
+    home.style.display="none";
+    game.style.display="flex";
+    createBoard();
+};
+
+document.getElementById("restart").onclick = () => {
+    board = Array(9).fill("");
+    gameOver=false;
+    statusEl.innerText="";
+    createBoard();
+};
+
+function createBoard(){
+    boardEl.innerHTML="";
+    board.forEach((val,i)=>{
+        const cell=document.createElement("div");
+        cell.classList.add("cell");
+        if(val){
+            cell.innerText=val;
+            cell.classList.add(val);
+        }
+        cell.onclick=()=>playerMove(i);
+        boardEl.appendChild(cell);
+    });
+}
+
+function playerMove(i){
+    if(board[i] || gameOver) return;
+    board[i]="O";
+    createBoard();
+    if(checkWin("O")) return;
+    setTimeout(computerMove,400);
+}
+
+function computerMove(){
+    let empty = board.map((v,i)=>v==""?i:null).filter(v=>v!==null);
+    if(empty.length===0) return;
+    let move = empty[Math.floor(Math.random()*empty.length)];
+    board[move]="X";
+    createBoard();
+    checkWin("X");
+}
+
+function checkWin(player){
+    const wins=[
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+    ];
+    for(let w of wins){
+        if(w.every(i=>board[i]===player)){
+            gameOver=true;
+            statusEl.innerText = (player==="O")?"🎉 You Win!":"🤖 Computer Wins!";
+            w.forEach(i=>boardEl.children[i].classList.add("win"));
+            return true;
+        }
+    }
+    if(!board.includes("")){
+        statusEl.innerText="😐 Draw!";
+        gameOver=true;
+    }
+    return false;
+}
+</script>
+
+</body>
+</html>
