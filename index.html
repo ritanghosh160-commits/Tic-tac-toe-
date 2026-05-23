@@ -2,61 +2,62 @@
 <html lang="en">
 <head>
 
-<!-- ✅ Monetag Ad Script -->
-<script src='//libtl.com/sdk.js'
-data-zone='10442791'
-data-sdk='show_10442791'></script>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tic Tac Toe Earn</title>
+
+<title>PEPE Tic Tac Toe</title>
 
 <style>
+
 *{
     box-sizing:border-box;
-    font-family: 'Segoe UI', sans-serif;
+    font-family:Segoe UI,sans-serif;
 }
+
 body{
     margin:0;
-    height:100vh;
-    background: radial-gradient(circle at top, #1b1464, #000);
+    background:radial-gradient(circle at top,#1b1464,#000);
+    color:white;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+}
+
+.topbar{
+    padding:15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:rgba(255,255,255,0.05);
+}
+
+.balance{
+    background:#111;
+    padding:8px 15px;
+    border-radius:20px;
+}
+
+.main{
+    flex:1;
     display:flex;
     justify-content:center;
     align-items:center;
-    color:white;
-}
-
-/* HOME */
-#home{text-align:center;}
-#startBtn{
-    padding:15px 40px;
-    font-size:1.2rem;
-    border:none;
-    border-radius:30px;
-    background:linear-gradient(45deg,#00f2ff,#7d2ae8);
-    color:white;
-    cursor:pointer;
-}
-
-/* GAME */
-#game{
-    display:none;
     flex-direction:column;
-    align-items:center;
+    padding:20px;
 }
 
 .board{
     width:90vw;
-    max-width:320px;
+    max-width:340px;
     display:grid;
     grid-template-columns:repeat(3,1fr);
-    gap:8px;
+    gap:10px;
 }
 
 .cell{
     aspect-ratio:1;
     background:#111;
-    border-radius:10px;
+    border-radius:12px;
     display:flex;
     justify-content:center;
     align-items:center;
@@ -64,144 +65,537 @@ body{
     cursor:pointer;
 }
 
-.O{color:#00eaff;}
-.X{color:#ff8a8a;}
-
-#status{margin-top:15px;}
-#restart{
-    margin-top:10px;
-    padding:8px 20px;
-    border:none;
-    background:#7d2ae8;
-    color:white;
+.O{
+    color:#00eaff;
 }
+
+.X{
+    color:#ff7b7b;
+}
+
+#status{
+    margin-top:20px;
+    text-align:center;
+}
+
+.rewardBox{
+    margin-top:15px;
+}
+
+.rewardBtn,
+.restartBtn{
+    border:none;
+    padding:12px 20px;
+    border-radius:12px;
+    color:white;
+    cursor:pointer;
+    font-size:1rem;
+}
+
+.rewardBtn{
+    background:#00b894;
+}
+
+.restartBtn{
+    background:#7d2ae8;
+}
+
+.bottomMenu{
+    display:flex;
+    justify-content:space-around;
+    padding:15px;
+    background:#111;
+}
+
+.menuBtn{
+    background:none;
+    border:none;
+    color:white;
+    font-size:1rem;
+    cursor:pointer;
+}
+
+.hidden{
+    display:none;
+}
+
+.card{
+    width:100%;
+    max-width:400px;
+    background:#111;
+    padding:20px;
+    border-radius:18px;
+}
+
+.taskItem{
+    background:#222;
+    padding:10px;
+    border-radius:10px;
+    margin-top:10px;
+}
+
 </style>
+
 </head>
 
 <body>
 
-<div id="home">
-    <h1>🎮 Play & Earn</h1>
-    <button id="startBtn">Start Game</button>
+<div class="topbar">
+    <div>👤 Player</div>
+    <div class="balance" id="balance">
+        🐸 0 PEPE
+    </div>
 </div>
 
-<div id="game">
-    <div class="board" id="board"></div>
-    <div id="status"></div>
-    <button id="restart">Restart</button>
+<div class="main">
+
+<!-- PLAY -->
+
+<div id="playSection">
+
+<div class="board" id="board"></div>
+
+<div id="status"></div>
+
+<div class="rewardBox" id="rewardBox"></div>
+
 </div>
 
-<script>
+<!-- TASK -->
 
-/* 🔥 AUTO AD ON LOAD */
-window.onload = () => {
-    setTimeout(() => {
-        if (typeof show_10442791 === "function") {
-            show_10442791().catch(()=>{});
-        }
-    }, 500);
+<div id="taskSection" class="hidden">
+
+<div class="card">
+
+<h2>📋 Tasks</h2>
+
+<div class="taskItem">
+Join Channel = 25 PEPE
+</div>
+
+<div class="taskItem">
+Watch 500 Ads = 1000 PEPE
+</div>
+
+<div class="taskItem">
+Win 100 Games = 175 PEPE
+</div>
+
+</div>
+
+</div>
+
+<!-- WALLET -->
+
+<div id="walletSection" class="hidden">
+
+<div class="card">
+
+<h2>👛 Wallet</h2>
+
+<div class="taskItem">
+FaucetPay Min Withdraw = 100 PEPE
+</div>
+
+<div class="taskItem">
+CWallet Min Withdraw = 500 PEPE
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- MENU -->
+
+<div class="bottomMenu">
+
+<button class="menuBtn" id="playBtn">
+🎮 Play
+</button>
+
+<button class="menuBtn" id="taskBtn">
+📋 Tasks
+</button>
+
+<button class="menuBtn" id="walletBtn">
+👛 Wallet
+</button>
+
+</div>
+
+<!-- FIREBASE -->
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getFirestore,
+doc,
+getDoc,
+setDoc,
+updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_ID",
+  appId: "YOUR_APP_ID"
 };
 
-const home = document.getElementById("home");
-const game = document.getElementById("game");
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
+
+/* ELEMENTS */
+
 const boardEl = document.getElementById("board");
 const statusEl = document.getElementById("status");
+const rewardBox = document.getElementById("rewardBox");
+const balanceEl = document.getElementById("balance");
+
+const playSection = document.getElementById("playSection");
+const taskSection = document.getElementById("taskSection");
+const walletSection = document.getElementById("walletSection");
+
+/* GAME */
 
 let board = Array(9).fill("");
 let gameOver = false;
+let rewardClaimed = false;
 
-document.getElementById("startBtn").onclick = () => {
-    home.style.display="none";
-    game.style.display="flex";
-    createBoard();
+let pepeBalance = 0;
+
+const userId = "demo-user";
+
+/* LOAD */
+
+loadUserData();
+createBoard();
+
+/* MENU */
+
+playBtn.onclick = () => {
+
+playSection.classList.remove("hidden");
+taskSection.classList.add("hidden");
+walletSection.classList.add("hidden");
+
 };
 
-document.getElementById("restart").onclick = resetGame;
+taskBtn.onclick = () => {
+
+playSection.classList.add("hidden");
+taskSection.classList.remove("hidden");
+walletSection.classList.add("hidden");
+
+};
+
+walletBtn.onclick = () => {
+
+playSection.classList.add("hidden");
+taskSection.classList.add("hidden");
+walletSection.classList.remove("hidden");
+
+};
+
+/* FIREBASE */
+
+async function loadUserData(){
+
+const userRef = doc(db,"users",userId);
+
+const userSnap = await getDoc(userRef);
+
+if(userSnap.exists()){
+
+pepeBalance = userSnap.data().balance || 0;
+
+}else{
+
+await setDoc(userRef,{
+balance:0
+});
+
+pepeBalance = 0;
+
+}
+
+updateBalance();
+
+}
+
+/* BALANCE */
+
+function updateBalance(){
+
+balanceEl.innerText =
+`🐸 ${pepeBalance} PEPE`;
+
+}
+
+/* BOARD */
 
 function createBoard(){
-    boardEl.innerHTML="";
-    board.forEach((val,i)=>{
-        const cell=document.createElement("div");
-        cell.classList.add("cell");
-        if(val){
-            cell.innerText=val;
-            cell.classList.add(val);
-        }
-        cell.onclick=()=>playerMove(i);
-        boardEl.appendChild(cell);
-    });
+
+boardEl.innerHTML = "";
+
+board.forEach((val,i)=>{
+
+const cell =
+document.createElement("div");
+
+cell.classList.add("cell");
+
+if(val){
+
+cell.innerText = val;
+cell.classList.add(val);
+
 }
+
+cell.onclick = ()=>playerMove(i);
+
+boardEl.appendChild(cell);
+
+});
+
+}
+
+/* PLAYER */
 
 function playerMove(i){
-    if(board[i] || gameOver) return;
-    board[i]="O";
-    createBoard();
-    if(checkWin("O")) return;
-    setTimeout(computerMove,300);
+
+if(board[i] || gameOver) return;
+
+board[i] = "O";
+
+createBoard();
+
+if(checkWin("O")) return;
+
+setTimeout(computerMove,250);
+
 }
+
+/* AI */
 
 function computerMove(){
-    let empty = board.map((v,i)=>v==""?i:null).filter(v=>v!==null);
-    if(empty.length===0) return;
-    let move = empty[Math.floor(Math.random()*empty.length)];
-    board[move]="X";
-    createBoard();
-    checkWin("X");
+
+let bestMove = getBestMove();
+
+board[bestMove] = "X";
+
+createBoard();
+
+checkWin("X");
+
 }
+
+function getBestMove(){
+
+let empty =
+board.map((v,i)=>v===""?i:null)
+.filter(v=>v!==null);
+
+/* WIN */
+
+for(let i of empty){
+
+board[i] = "X";
+
+if(isWinner("X")){
+
+board[i] = "";
+
+return i;
+
+}
+
+board[i] = "";
+
+}
+
+/* BLOCK */
+
+for(let i of empty){
+
+board[i] = "O";
+
+if(isWinner("O")){
+
+board[i] = "";
+
+return i;
+
+}
+
+board[i] = "";
+
+}
+
+/* CENTER */
+
+if(board[4] === "") return 4;
+
+/* RANDOM */
+
+return empty[
+Math.floor(Math.random()*empty.length)
+];
+
+}
+
+function isWinner(player){
+
+const wins = [
+[0,1,2],[3,4,5],[6,7,8],
+[0,3,6],[1,4,7],[2,5,8],
+[0,4,8],[2,4,6]
+];
+
+return wins.some(w =>
+w.every(i=>board[i]===player)
+);
+
+}
+
+/* RESET */
 
 function resetGame(){
-    board = Array(9).fill("");
-    gameOver=false;
-    statusEl.innerText="";
-    createBoard();
+
+board = Array(9).fill("");
+
+gameOver = false;
+rewardClaimed = false;
+
+statusEl.innerText = "";
+
+rewardBox.innerHTML = "";
+
+createBoard();
+
 }
 
-/* 🔥 GAME RESULT + REWARDED AD */
+/* RESULT */
+
 function checkWin(player){
-    const wins=[
-        [0,1,2],[3,4,5],[6,7,8],
-        [0,3,6],[1,4,7],[2,5,8],
-        [0,4,8],[2,4,6]
-    ];
 
-    for(let w of wins){
-        if(w.every(i=>board[i]===player)){
-            gameOver=true;
+const wins = [
+[0,1,2],[3,4,5],[6,7,8],
+[0,3,6],[1,4,7],[2,5,8],
+[0,4,8],[2,4,6]
+];
 
-            statusEl.innerText =
-                (player==="O") ?
-                "🎉 You Win! Reward Unlocking..." :
-                "🤖 Computer Wins! Try Again";
+for(let w of wins){
 
-            setTimeout(showRewardAd,800);
-            return true;
-        }
-    }
+if(w.every(i=>board[i]===player)){
 
-    if(!board.includes("")){
-        gameOver=true;
-        statusEl.innerText="😐 Draw! Watch Ad";
+gameOver = true;
 
-        setTimeout(showRewardAd,800);
-    }
-    return false;
+if(player==="O"){
+
+statusEl.innerText =
+"🎉 You Won!";
+
+rewardBox.innerHTML =
+`<button class="rewardBtn" id="claimBtn">
+🎥 Watch & Collect 10 PEPE
+</button>`;
+
+document
+.getElementById("claimBtn")
+.onclick = () => {
+
+collectReward(10);
+
+};
+
+}else{
+
+statusEl.innerText =
+"🤖 You Lost";
+
+rewardBox.innerHTML =
+`<button class="restartBtn" id="restartBtn">
+🔄 Restart
+</button>`;
+
+document
+.getElementById("restartBtn")
+.onclick = () => {
+
+resetGame();
+
+};
+
 }
 
-/* 🔥 REWARDED AD FUNCTION */
-function showRewardAd(){
-    if (typeof show_10442791 === "function") {
-        show_10442791().then(() => {
-            alert("✅ Reward unlocked!");
-            resetGame();
-        }).catch(() => {
-            resetGame();
-        });
-    } else {
-        resetGame();
-    }
+return true;
+
+}
+
+}
+
+/* DRAW */
+
+if(!board.includes("")){
+
+gameOver = true;
+
+statusEl.innerText =
+"😐 Match Draw";
+
+rewardBox.innerHTML =
+`<button class="rewardBtn" id="claimBtn">
+🎥 Watch & Collect 5 PEPE
+</button>`;
+
+document
+.getElementById("claimBtn")
+.onclick = () => {
+
+collectReward(5);
+
+};
+
+}
+
+return false;
+
+}
+
+/* REWARD */
+
+async function collectReward(amount){
+
+if(rewardClaimed) return;
+
+rewardClaimed = true;
+
+pepeBalance += amount;
+
+updateBalance();
+
+const userRef =
+doc(db,"users",userId);
+
+await updateDoc(userRef,{
+balance:pepeBalance
+});
+
+alert(`✅ ${amount} PEPE Added`);
+
+resetGame();
+
 }
 
 </script>
 
 </body>
-</html> 
+</html>
