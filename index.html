@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>PEPE Tic Tac Toe</title>
+<title>Stable Tic Tac Toe</title>
 
 <style>
 
@@ -21,29 +19,12 @@ body{
     min-height:100vh;
     display:flex;
     flex-direction:column;
-}
-
-.topbar{
-    padding:15px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    background:rgba(255,255,255,0.05);
-}
-
-.balance{
-    background:#111;
-    padding:8px 15px;
-    border-radius:20px;
-}
-
-.main{
-    flex:1;
-    display:flex;
     justify-content:center;
     align-items:center;
-    flex-direction:column;
-    padding:20px;
+}
+
+h1{
+    margin-bottom:20px;
 }
 
 .board{
@@ -63,6 +44,11 @@ body{
     align-items:center;
     font-size:2.5rem;
     cursor:pointer;
+    transition:0.2s;
+}
+
+.cell:active{
+    transform:scale(0.95);
 }
 
 .O{
@@ -75,349 +61,121 @@ body{
 
 #status{
     margin-top:20px;
+    font-size:1.1rem;
     text-align:center;
 }
 
-.rewardBox{
-    margin-top:15px;
-}
-
-.rewardBtn,
-.restartBtn{
+button{
+    margin-top:20px;
     border:none;
-    padding:12px 20px;
+    padding:12px 24px;
     border-radius:12px;
-    color:white;
-    cursor:pointer;
-    font-size:1rem;
-}
-
-.rewardBtn{
-    background:#00b894;
-}
-
-.restartBtn{
     background:#7d2ae8;
-}
-
-.bottomMenu{
-    display:flex;
-    justify-content:space-around;
-    padding:15px;
-    background:#111;
-}
-
-.menuBtn{
-    background:none;
-    border:none;
     color:white;
-    font-size:1rem;
     cursor:pointer;
-}
-
-.hidden{
-    display:none;
-}
-
-.card{
-    width:100%;
-    max-width:400px;
-    background:#111;
-    padding:20px;
-    border-radius:18px;
-}
-
-.taskItem{
-    background:#222;
-    padding:10px;
-    border-radius:10px;
-    margin-top:10px;
+    font-size:1rem;
 }
 
 </style>
-
 </head>
 
 <body>
 
-<div class="topbar">
-    <div>👤 Player</div>
-    <div class="balance" id="balance">
-        🐸 0 PEPE
-    </div>
-</div>
-
-<div class="main">
-
-<!-- PLAY -->
-
-<div id="playSection">
+<h1>🎮 Tic Tac Toe</h1>
 
 <div class="board" id="board"></div>
 
 <div id="status"></div>
 
-<div class="rewardBox" id="rewardBox"></div>
-
-</div>
-
-<!-- TASK -->
-
-<div id="taskSection" class="hidden">
-
-<div class="card">
-
-<h2>📋 Tasks</h2>
-
-<div class="taskItem">
-Join Channel = 25 PEPE
-</div>
-
-<div class="taskItem">
-Watch 500 Ads = 1000 PEPE
-</div>
-
-<div class="taskItem">
-Win 100 Games = 175 PEPE
-</div>
-
-</div>
-
-</div>
-
-<!-- WALLET -->
-
-<div id="walletSection" class="hidden">
-
-<div class="card">
-
-<h2>👛 Wallet</h2>
-
-<div class="taskItem">
-FaucetPay Min Withdraw = 100 PEPE
-</div>
-
-<div class="taskItem">
-CWallet Min Withdraw = 500 PEPE
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- MENU -->
-
-<div class="bottomMenu">
-
-<button class="menuBtn" id="playBtn">
-🎮 Play
+<button id="restartBtn">
+🔄 Restart Game
 </button>
 
-<button class="menuBtn" id="taskBtn">
-📋 Tasks
-</button>
+<script>
 
-<button class="menuBtn" id="walletBtn">
-👛 Wallet
-</button>
+const boardEl = document.getElementById("board")
+const statusEl = document.getElementById("status")
+const restartBtn = document.getElementById("restartBtn")
 
-</div>
+let board = ["","","","","","","","",""]
+let gameOver = false
 
-<!-- FIREBASE -->
+createBoard()
 
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-getFirestore,
-doc,
-getDoc,
-setDoc,
-updateDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_ID",
-  appId: "YOUR_APP_ID"
-};
-
-const app = initializeApp(firebaseConfig);
-
-const db = getFirestore(app);
-
-/* ELEMENTS */
-
-const boardEl = document.getElementById("board");
-const statusEl = document.getElementById("status");
-const rewardBox = document.getElementById("rewardBox");
-const balanceEl = document.getElementById("balance");
-
-const playSection = document.getElementById("playSection");
-const taskSection = document.getElementById("taskSection");
-const walletSection = document.getElementById("walletSection");
-
-/* GAME */
-
-let board = Array(9).fill("");
-let gameOver = false;
-let rewardClaimed = false;
-
-let pepeBalance = 0;
-
-const userId = "demo-user";
-
-/* LOAD */
-
-loadUserData();
-createBoard();
-
-/* MENU */
-
-playBtn.onclick = () => {
-
-playSection.classList.remove("hidden");
-taskSection.classList.add("hidden");
-walletSection.classList.add("hidden");
-
-};
-
-taskBtn.onclick = () => {
-
-playSection.classList.add("hidden");
-taskSection.classList.remove("hidden");
-walletSection.classList.add("hidden");
-
-};
-
-walletBtn.onclick = () => {
-
-playSection.classList.add("hidden");
-taskSection.classList.add("hidden");
-walletSection.classList.remove("hidden");
-
-};
-
-/* FIREBASE */
-
-async function loadUserData(){
-
-const userRef = doc(db,"users",userId);
-
-const userSnap = await getDoc(userRef);
-
-if(userSnap.exists()){
-
-pepeBalance = userSnap.data().balance || 0;
-
-}else{
-
-await setDoc(userRef,{
-balance:0
-});
-
-pepeBalance = 0;
-
-}
-
-updateBalance();
-
-}
-
-/* BALANCE */
-
-function updateBalance(){
-
-balanceEl.innerText =
-`🐸 ${pepeBalance} PEPE`;
-
-}
-
-/* BOARD */
+restartBtn.onclick = resetGame
 
 function createBoard(){
 
-boardEl.innerHTML = "";
+boardEl.innerHTML = ""
 
 board.forEach((val,i)=>{
 
-const cell =
-document.createElement("div");
+const cell = document.createElement("div")
 
-cell.classList.add("cell");
+cell.classList.add("cell")
 
 if(val){
 
-cell.innerText = val;
-cell.classList.add(val);
+cell.innerText = val
+cell.classList.add(val)
 
 }
 
-cell.onclick = ()=>playerMove(i);
+cell.onclick = ()=>playerMove(i)
 
-boardEl.appendChild(cell);
+boardEl.appendChild(cell)
 
-});
+})
 
 }
-
-/* PLAYER */
 
 function playerMove(i){
 
-if(board[i] || gameOver) return;
+if(board[i] || gameOver) return
 
-board[i] = "O";
+board[i] = "O"
 
-createBoard();
+createBoard()
 
-if(checkWin("O")) return;
+if(checkResult("O")) return
 
-setTimeout(computerMove,250);
+setTimeout(computerMove,300)
 
 }
 
-/* AI */
-
 function computerMove(){
 
-let bestMove = getBestMove();
+let move = getBestMove()
 
-board[bestMove] = "X";
+board[move] = "X"
 
-createBoard();
+createBoard()
 
-checkWin("X");
+checkResult("X")
 
 }
 
 function getBestMove(){
 
-let empty =
-board.map((v,i)=>v===""?i:null)
-.filter(v=>v!==null);
+let empty = board
+.map((v,i)=>v===""?i:null)
+.filter(v=>v!==null)
 
 /* WIN */
 
 for(let i of empty){
 
-board[i] = "X";
+board[i] = "X"
 
 if(isWinner("X")){
 
-board[i] = "";
+board[i] = ""
 
-return i;
+return i
 
 }
 
-board[i] = "";
+board[i] = ""
 
 }
 
@@ -425,29 +183,42 @@ board[i] = "";
 
 for(let i of empty){
 
-board[i] = "O";
+board[i] = "O"
 
 if(isWinner("O")){
 
-board[i] = "";
+board[i] = ""
 
-return i;
+return i
 
 }
 
-board[i] = "";
+board[i] = ""
 
 }
 
 /* CENTER */
 
-if(board[4] === "") return 4;
+if(board[4] === "") return 4
+
+/* CORNERS */
+
+const corners =
+[0,2,6,8].filter(i=>board[i]==="")
+
+if(corners.length > 0){
+
+return corners[
+Math.floor(Math.random()*corners.length)
+]
+
+}
 
 /* RANDOM */
 
 return empty[
 Math.floor(Math.random()*empty.length)
-];
+]
 
 }
 
@@ -457,141 +228,53 @@ const wins = [
 [0,1,2],[3,4,5],[6,7,8],
 [0,3,6],[1,4,7],[2,5,8],
 [0,4,8],[2,4,6]
-];
+]
 
 return wins.some(w =>
 w.every(i=>board[i]===player)
-);
+)
 
 }
 
-/* RESET */
+function checkResult(player){
 
-function resetGame(){
+if(isWinner(player)){
 
-board = Array(9).fill("");
-
-gameOver = false;
-rewardClaimed = false;
-
-statusEl.innerText = "";
-
-rewardBox.innerHTML = "";
-
-createBoard();
-
-}
-
-/* RESULT */
-
-function checkWin(player){
-
-const wins = [
-[0,1,2],[3,4,5],[6,7,8],
-[0,3,6],[1,4,7],[2,5,8],
-[0,4,8],[2,4,6]
-];
-
-for(let w of wins){
-
-if(w.every(i=>board[i]===player)){
-
-gameOver = true;
-
-if(player==="O"){
+gameOver = true
 
 statusEl.innerText =
-"🎉 You Won!";
+player==="O"
+? "🎉 You Win!"
+: "🤖 Computer Wins!"
 
-rewardBox.innerHTML =
-`<button class="rewardBtn" id="claimBtn">
-🎥 Watch & Collect 10 PEPE
-</button>`;
-
-document
-.getElementById("claimBtn")
-.onclick = () => {
-
-collectReward(10);
-
-};
-
-}else{
-
-statusEl.innerText =
-"🤖 You Lost";
-
-rewardBox.innerHTML =
-`<button class="restartBtn" id="restartBtn">
-🔄 Restart
-</button>`;
-
-document
-.getElementById("restartBtn")
-.onclick = () => {
-
-resetGame();
-
-};
+return true
 
 }
-
-return true;
-
-}
-
-}
-
-/* DRAW */
 
 if(!board.includes("")){
 
-gameOver = true;
+gameOver = true
 
 statusEl.innerText =
-"😐 Match Draw";
+"😐 Match Draw"
 
-rewardBox.innerHTML =
-`<button class="rewardBtn" id="claimBtn">
-🎥 Watch & Collect 5 PEPE
-</button>`;
-
-document
-.getElementById("claimBtn")
-.onclick = () => {
-
-collectReward(5);
-
-};
+return true
 
 }
 
-return false;
+return false
 
 }
 
-/* REWARD */
+function resetGame(){
 
-async function collectReward(amount){
+board = ["","","","","","","","",""]
 
-if(rewardClaimed) return;
+gameOver = false
 
-rewardClaimed = true;
+statusEl.innerText = ""
 
-pepeBalance += amount;
-
-updateBalance();
-
-const userRef =
-doc(db,"users",userId);
-
-await updateDoc(userRef,{
-balance:pepeBalance
-});
-
-alert(`✅ ${amount} PEPE Added`);
-
-resetGame();
+createBoard()
 
 }
 
