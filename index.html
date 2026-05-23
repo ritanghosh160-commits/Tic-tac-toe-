@@ -3,77 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stable Tic Tac Toe</title>
+<title>Firebase Balance Test</title>
 
 <style>
 
-*{
-    box-sizing:border-box;
-    font-family:Segoe UI,sans-serif;
-}
-
 body{
     margin:0;
-    background:radial-gradient(circle at top,#1b1464,#000);
+    background:#0f0f0f;
     color:white;
+    font-family:Segoe UI,sans-serif;
     min-height:100vh;
     display:flex;
-    flex-direction:column;
     justify-content:center;
     align-items:center;
 }
 
-h1{
-    margin-bottom:20px;
-}
-
-.board{
-    width:90vw;
-    max-width:340px;
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:10px;
-}
-
-.cell{
-    aspect-ratio:1;
-    background:#111;
-    border-radius:12px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:2.5rem;
-    cursor:pointer;
-    transition:0.2s;
-}
-
-.cell:active{
-    transform:scale(0.95);
-}
-
-.O{
-    color:#00eaff;
-}
-
-.X{
-    color:#ff7b7b;
-}
-
-#status{
-    margin-top:20px;
-    font-size:1.1rem;
+.box{
+    background:#1b1b1b;
+    padding:30px;
+    border-radius:20px;
     text-align:center;
+    width:90%;
+    max-width:350px;
+}
+
+.balance{
+    font-size:2rem;
+    margin:20px 0;
 }
 
 button{
-    margin-top:20px;
     border:none;
-    padding:12px 24px;
+    padding:12px 20px;
     border-radius:12px;
-    background:#7d2ae8;
-    color:white;
     cursor:pointer;
     font-size:1rem;
+    margin-top:10px;
+    width:100%;
+}
+
+.addBtn{
+    background:#00b894;
+    color:white;
+}
+
+.resetBtn{
+    background:#7d2ae8;
+    color:white;
 }
 
 </style>
@@ -81,202 +57,162 @@ button{
 
 <body>
 
-<h1>🎮 Tic Tac Toe</h1>
+<div class="box">
 
-<div class="board" id="board"></div>
+<h1>🐸 PEPE Balance</h1>
 
-<div id="status"></div>
+<div class="balance" id="balance">
+0 PEPE
+</div>
 
-<button id="restartBtn">
-🔄 Restart Game
+<button class="addBtn" id="addBtn">
++ Add 10 PEPE
 </button>
 
-<script>
+<button class="resetBtn" id="resetBtn">
+Reset Balance
+</button>
 
-const boardEl = document.getElementById("board")
-const statusEl = document.getElementById("status")
-const restartBtn = document.getElementById("restartBtn")
+</div>
 
-let board = ["","","","","","","","",""]
-let gameOver = false
+<script type="module">
 
-createBoard()
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-restartBtn.onclick = resetGame
+import {
+getFirestore,
+doc,
+getDoc,
+setDoc,
+updateDoc
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-function createBoard(){
+/* FIREBASE CONFIG */
 
-boardEl.innerHTML = ""
+const firebaseConfig = {
 
-board.forEach((val,i)=>{
+apiKey: "YOUR_API_KEY",
 
-const cell = document.createElement("div")
+authDomain: "YOUR_AUTH_DOMAIN",
 
-cell.classList.add("cell")
+projectId: "YOUR_PROJECT_ID",
 
-if(val){
+storageBucket: "YOUR_STORAGE_BUCKET",
 
-cell.innerText = val
-cell.classList.add(val)
+messagingSenderId: "YOUR_MESSAGING_ID",
+
+appId: "YOUR_APP_ID"
+
+};
+
+/* INIT */
+
+const app =
+initializeApp(firebaseConfig);
+
+const db =
+getFirestore(app);
+
+/* ELEMENTS */
+
+const balanceEl =
+document.getElementById("balance");
+
+const addBtn =
+document.getElementById("addBtn");
+
+const resetBtn =
+document.getElementById("resetBtn");
+
+/* USER */
+
+const userId = "demo-user";
+
+let pepeBalance = 0;
+
+/* LOAD USER */
+
+async function loadBalance(){
+
+const userRef =
+doc(db,"users",userId);
+
+const userSnap =
+await getDoc(userRef);
+
+if(userSnap.exists()){
+
+pepeBalance =
+userSnap.data().balance || 0;
+
+}else{
+
+await setDoc(userRef,{
+balance:0
+});
+
+pepeBalance = 0;
 
 }
 
-cell.onclick = ()=>playerMove(i)
-
-boardEl.appendChild(cell)
-
-})
+updateUI();
 
 }
 
-function playerMove(i){
+/* UPDATE UI */
 
-if(board[i] || gameOver) return
+function updateUI(){
 
-board[i] = "O"
-
-createBoard()
-
-if(checkResult("O")) return
-
-setTimeout(computerMove,300)
+balanceEl.innerText =
+`${pepeBalance} PEPE`;
 
 }
 
-function computerMove(){
+/* ADD BALANCE */
 
-let move = getBestMove()
+async function addBalance(){
 
-board[move] = "X"
+pepeBalance += 10;
 
-createBoard()
+updateUI();
 
-checkResult("X")
+const userRef =
+doc(db,"users",userId);
 
-}
-
-function getBestMove(){
-
-let empty = board
-.map((v,i)=>v===""?i:null)
-.filter(v=>v!==null)
-
-/* WIN */
-
-for(let i of empty){
-
-board[i] = "X"
-
-if(isWinner("X")){
-
-board[i] = ""
-
-return i
+await updateDoc(userRef,{
+balance:pepeBalance
+});
 
 }
 
-board[i] = ""
+/* RESET BALANCE */
+
+async function resetBalance(){
+
+pepeBalance = 0;
+
+updateUI();
+
+const userRef =
+doc(db,"users",userId);
+
+await updateDoc(userRef,{
+balance:0
+});
 
 }
 
-/* BLOCK */
+/* BUTTONS */
 
-for(let i of empty){
+addBtn.onclick = addBalance;
 
-board[i] = "O"
+resetBtn.onclick = resetBalance;
 
-if(isWinner("O")){
+/* START */
 
-board[i] = ""
-
-return i
-
-}
-
-board[i] = ""
-
-}
-
-/* CENTER */
-
-if(board[4] === "") return 4
-
-/* CORNERS */
-
-const corners =
-[0,2,6,8].filter(i=>board[i]==="")
-
-if(corners.length > 0){
-
-return corners[
-Math.floor(Math.random()*corners.length)
-]
-
-}
-
-/* RANDOM */
-
-return empty[
-Math.floor(Math.random()*empty.length)
-]
-
-}
-
-function isWinner(player){
-
-const wins = [
-[0,1,2],[3,4,5],[6,7,8],
-[0,3,6],[1,4,7],[2,5,8],
-[0,4,8],[2,4,6]
-]
-
-return wins.some(w =>
-w.every(i=>board[i]===player)
-)
-
-}
-
-function checkResult(player){
-
-if(isWinner(player)){
-
-gameOver = true
-
-statusEl.innerText =
-player==="O"
-? "🎉 You Win!"
-: "🤖 Computer Wins!"
-
-return true
-
-}
-
-if(!board.includes("")){
-
-gameOver = true
-
-statusEl.innerText =
-"😐 Match Draw"
-
-return true
-
-}
-
-return false
-
-}
-
-function resetGame(){
-
-board = ["","","","","","","","",""]
-
-gameOver = false
-
-statusEl.innerText = ""
-
-createBoard()
-
-}
+loadBalance();
 
 </script>
 
