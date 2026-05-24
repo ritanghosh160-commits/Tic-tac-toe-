@@ -217,7 +217,7 @@ let board = Array(9).fill("")
 let gameOver = false
 let pepeBalance = 0 const userId = "demo-user"
 
-updateBalance()
+loadBalance()
 createBoard()
 
 /* MENU */
@@ -241,9 +241,7 @@ walletSection.classList.remove("hidden")
 
 function updateBalance(){
 balanceEl.innerText = `🐸 ${pepeBalance} PEPE`
-localStorage.setItem("pepeBalance", pepeBalance)
 }
-
 function createBoard(){
 boardEl.innerHTML = ""
 
@@ -382,7 +380,49 @@ return false
 
 function collectReward(amount){
 pepeBalance = Number(pepeBalance) + amount
+saveBalance()
+    async function loadBalance(){
+
+const userRef =
+firebaseDoc(
+firebaseDB,
+"users",
+userId
+)
+
+const userSnap =
+await firebaseGetDoc(userRef)
+
+if(userSnap.exists()){
+
+pepeBalance =
+userSnap.data().balance || 0
+
+}else{
+
+await firebaseSetDoc(userRef,{
+balance:0
+})
+
+pepeBalance = 0
+
+}
+
 updateBalance()
+async function saveBalance(){
+
+const userRef =
+firebaseDoc(
+firebaseDB,
+"users",
+userId
+)
+
+await firebaseUpdateDoc(userRef,{
+balance:pepeBalance
+})
+
+}
 alert(`✅ ${amount} PEPE Added`)
 resetGame()
 }
