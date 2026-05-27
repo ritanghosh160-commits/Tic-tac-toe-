@@ -142,7 +142,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);  
 const db = getFirestore(app);  
   
-window.firebaseDb = db;  
+// Yahan window par Capital DB hi export ho raha hai
+window.firebaseDB = db;  
 window.firebaseDoc = doc;  
 window.firebaseGetDoc = getDoc;  
 window.firebaseSetDoc = setDoc;  
@@ -203,11 +204,9 @@ const walletSection = document.getElementById("walletSection")
 let board = Array(9).fill("")  
 let gameOver = false  
   
-// Step 1: LocalStorage ko hata kar initial variables banaye
 let pepeBalance = 0  
 const userId = "demo_user"  
   
-// Step 4: Pehle direct chalne wale updateBalance() ko loadBalance() se badla
 loadBalance()  
 createBoard()  
   
@@ -230,15 +229,14 @@ taskSection.classList.add("hidden")
 walletSection.classList.remove("hidden")  
 }  
   
-// Step 2: updateBalance() function jisme LocalStorage ka kaam nahi hai
 function updateBalance(){  
 balanceEl.innerText = `🐸 ${pepeBalance} PEPE`  
 }  
   
-// Step 3: updateBalance() ke theek neeche loadBalance aur saveBalance functions add kiye
+// CRITICAL FIX: Dono functions me ab 'firebaseDB' (Capital DB) use ho raha hai
 async function loadBalance(){  
 const userRef = firebaseDoc(  
-firebaseDb,  
+window.firebaseDB,  
 "users",  
 userId  
 )  
@@ -256,7 +254,7 @@ updateBalance()
   
 async function saveBalance(){  
 const userRef = firebaseDoc(  
-firebaseDb,  
+window.firebaseDB,  
 "users",  
 userId  
 )  
@@ -403,7 +401,6 @@ return false
   
 function collectReward(amount){  
 pepeBalance = Number(pepeBalance) + amount  
-// Step 5: updateBalance() ke thik niche saveBalance() function call add kiya
 updateBalance()  
 saveBalance()  
 alert(`✅ ${amount} PEPE Added`)  
