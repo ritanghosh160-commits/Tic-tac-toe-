@@ -1,433 +1,415 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PEPE Tic Tac Toe</title>
-
-<style>
-*{
-    box-sizing:border-box;
-    font-family:'Segoe UI',sans-serif;
-}
-body{
-    margin:0;
-    background:radial-gradient(circle at top,#1b1464,#000);
-    min-height:100vh;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-    color:white;
-}
-.topbar{
-    width:100%;
-    padding:15px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    background:rgba(255,255,255,0.05);
-    backdrop-filter:blur(10px);
-}
-.profile{
-    font-size:1rem;
-}
-.balance{
-    background:#111;
-    padding:8px 15px;
-    border-radius:20px;
-    font-weight:bold;
-}
-.main{
-    flex:1;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    flex-direction:column;
-    padding:20px;
-}
-.board{
-    width:90vw;
-    max-width:340px;
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:10px;
-}
-.cell{
-    aspect-ratio:1;
-    background:#111;
-    border-radius:12px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:2.5rem;
-    cursor:pointer;
-    transition:0.2s;
-}
-.cell:active{
-    transform:scale(0.95);
-}
-.O{color:#00eaff;}
-.X{color:#ff7b7b;}
-#status{
-    margin-top:20px;
-    text-align:center;
-    font-size:1.1rem;
-}
-.rewardBox{
-    margin-top:15px;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-}
-.rewardBtn,.restartBtn{
-    border:none;
-    padding:12px 20px;
-    border-radius:12px;
-    color:white;
-    cursor:pointer;
-    font-size:1rem;
-}
-.rewardBtn{background:#00b894;}
-.restartBtn{background:#7d2ae8;}
-.bottomMenu{
-    width:100%;
-    display:flex;
-    justify-content:space-around;
-    padding:15px 10px;
-    background:#111;
-    border-top:1px solid rgba(255,255,255,0.1);
-}
-.menuBtn{
-    background:none;
-    border:none;
-    color:white;
-    font-size:1rem;
-    cursor:pointer;
-}
-.hidden{display:none;}
-.card{
-    width:100%;
-    max-width:400px;
-    background:#111;
-    padding:20px;
-    border-radius:18px;
-}
-.taskItem{
-    padding:10px;
-    background:#222;
-    border-radius:10px;
-    margin-top:10px;
-}
-</style>
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import {
-getFirestore,
-doc,
-getDoc,
-setDoc,
-updateDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBGLk-WfinYzZuaC0qu-dzpY_mL6KuYWbc",
-  authDomain: "r-vox-pepexo.firebaseapp.com",
-  projectId: "r-vox-pepexo",
-  storageBucket: "r-vox-pepexo.firebasestorage.app",
-  messagingSenderId: "991544250422",
-  appId: "1:991544250422:web:4f728ad459f09196f9c897"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-window.firebaseDB = db;
-window.firebaseDoc = doc;
-window.firebaseGetDoc = getDoc;
-window.firebaseSetDoc = setDoc;
-window.firebaseUpdateDoc = updateDoc;
-
-</script>
-
-</head>
-<body>
-
-<div class="topbar">
-    <div class="profile">👤 Player</div>
-    <div class="balance" id="balance">🐸 0 PEPE</div>
-</div>
-
-<div class="main">
-
-<div id="playSection">
-<div class="board" id="board"></div>
-<div id="status"></div>
-<div class="rewardBox" id="rewardBox"></div>
-</div>
-
-<div id="taskSection" class="hidden">
-<div class="card">
-<h2>📋 Tasks</h2>
-
-<h3 style="color:#00eaff;">🔥 Limited Tasks</h3>
-<div class="taskItem">Join Channel = 25 PEPE</div>
-<div class="taskItem">PTC Ads = Custom Reward</div>
-
-<h3 style="color:#00eaff;margin-top:20px;">🎯 Daily Tasks</h3>
-<div class="taskItem">Watch 500 Ads = 1000 PEPE</div>
-<div class="taskItem">Win 100 Games = 175 PEPE</div>
-<div class="taskItem">Draw 50 Games = 75 PEPE</div>
-<div class="taskItem">Watch 1000 Ads = 1500 PEPE</div>
-<div class="taskItem">Win 250 Games = 350 PEPE</div>
-<div class="taskItem">Win 500 Games = 750 PEPE</div>
-</div>
-</div>
-
-<div id="walletSection" class="hidden">
-<div class="card">
-<h2>👛 Wallet</h2>
-<div class="taskItem">FaucetPay Min Withdraw = 100 PEPE</div>
-<div class="taskItem">CWallet Min Withdraw = 500 PEPE</div>
-</div>
-</div>
-
-</div>
-
-<div class="bottomMenu">
-<button class="menuBtn" id="playBtn">🎮 Play</button>
-<button class="menuBtn" id="taskBtn">📋 Tasks</button>
-<button class="menuBtn" id="walletBtn">👛 Wallet</button>
-</div>
-
-<script>
-
-const boardEl = document.getElementById("board")
-const statusEl = document.getElementById("status")
-const rewardBox = document.getElementById("rewardBox")
-const balanceEl = document.getElementById("balance")
-
-const playSection = document.getElementById("playSection")
-const taskSection = document.getElementById("taskSection")
-const walletSection = document.getElementById("walletSection")
-
-let board = Array(9).fill("")
-let gameOver = false
-let pepeBalance = 0 const userId = "demo-user"
-
-loadBalance()
-createBoard()
-
-/* MENU */
-document.getElementById("playBtn").onclick = () => {
-playSection.classList.remove("hidden")
-taskSection.classList.add("hidden")
-walletSection.classList.add("hidden")
-}
-
-document.getElementById("taskBtn").onclick = () => {
-playSection.classList.add("hidden")
-taskSection.classList.remove("hidden")
-walletSection.classList.add("hidden")
-}
-
-document.getElementById("walletBtn").onclick = () => {
-playSection.classList.add("hidden")
-taskSection.classList.add("hidden")
-walletSection.classList.remove("hidden")
-}
-
-function updateBalance(){
-balanceEl.innerText = `🐸 ${pepeBalance} PEPE`
-}
-function createBoard(){
-boardEl.innerHTML = ""
-
-board.forEach((val,i)=>{
-const cell = document.createElement("div")
-cell.classList.add("cell")
-
-if(val){
-cell.innerText = val
-cell.classList.add(val)
-}
-
-cell.onclick = ()=>playerMove(i)
-boardEl.appendChild(cell)
-})
-}
-
-function playerMove(i){
-if(board[i] || gameOver) return
-
-board[i] = "O"
-createBoard()
-
-if(checkWin("O")) return
-
-setTimeout(computerMove,250)
-}
-
-function computerMove(){
-
-let bestMove = getBestMove()
-board[bestMove] = "X"
-
-createBoard()
-checkWin("X")
-}
-
-function getBestMove(){
-
-let empty = board.map((v,i)=>v===""?i:null).filter(v=>v!==null)
-
-for(let i of empty){
-board[i] = "X"
-if(isWinner("X")){
-board[i] = ""
-return i
-}
-board[i] = ""
-}
-
-for(let i of empty){
-board[i] = "O"
-if(isWinner("O")){
-board[i] = ""
-return i
-}
-board[i] = ""
-}
-
-if(board[4] === "") return 4
-
-const corners = [0,2,6,8].filter(i => board[i] === "")
-
-if(corners.length > 0){
-return corners[Math.floor(Math.random()*corners.length)]
-}
-
-return empty[Math.floor(Math.random()*empty.length)]
-}
-
-function isWinner(player){
-
-const wins = [
-[0,1,2],[3,4,5],[6,7,8],
-[0,3,6],[1,4,7],[2,5,8],
-[0,4,8],[2,4,6]
-]
-
-return wins.some(w => w.every(i => board[i] === player))
-}
-
-function resetGame(){
-board = Array(9).fill("")
-gameOver = false
-statusEl.innerText = ""
-rewardBox.innerHTML = ""
-createBoard()
-}
-
-function checkWin(player){
-
-const wins = [
-[0,1,2],[3,4,5],[6,7,8],
-[0,3,6],[1,4,7],[2,5,8],
-[0,4,8],[2,4,6]
-]
-
-for(let w of wins){
-
-if(w.every(i=>board[i]===player)){
-
-gameOver = true
-
-if(player === "O"){
-statusEl.innerText = "🎉 You Won!"
-rewardBox.innerHTML = `
-<button class="rewardBtn" onclick="collectReward(10)">
-🎥 Watch & Collect 10 PEPE
-</button>
-`
-}else{
-statusEl.innerText = "🤖 You Lost"
-rewardBox.innerHTML = `
-<button class="restartBtn" onclick="resetGame()">
-🔄 Restart
-</button>
-`
-}
-
-return true
-}
-}
-
-if(!board.includes("")){
-gameOver = true
-statusEl.innerText = "😐 Match Draw"
-rewardBox.innerHTML = `
-<button class="rewardBtn" onclick="collectReward(5)">
-🎥 Watch & Collect 5 PEPE
-</button>
-`
-}
-
-return false
-}
-
-function collectReward(amount){
-pepeBalance = Number(pepeBalance) + amount
-saveBalance()
-    async function loadBalance(){
-
-const userRef =
-firebaseDoc(
-firebaseDB,
-"users",
-userId
-)
-
-const userSnap =
-await firebaseGetDoc(userRef)
-
-if(userSnap.exists()){
-
-pepeBalance =
-userSnap.data().balance || 0
-
-}else{
-
-await firebaseSetDoc(userRef,{
-balance:0
-})
-
-pepeBalance = 0
-
-}
-
-updateBalance()
-async function saveBalance(){
-
-const userRef =
-firebaseDoc(
-firebaseDB,
-"users",
-userId
-)
-
-await firebaseUpdateDoc(userRef,{
-balance:pepeBalance
-})
-
-}
-alert(`✅ ${amount} PEPE Added`)
-resetGame()
-}
-
-</script>
-
-</body>
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<title>PEPE Tic Tac Toe</title>  
+<style>  
+*{  
+    box-sizing:border-box;  
+    font-family:'Segoe UI',sans-serif;  
+}  
+body{  
+    margin:0;  
+    background:radial-gradient(circle at top,#1b1464,#000);  
+    min-height:100vh;  
+    display:flex;  
+    flex-direction:column;  
+    justify-content:space-between;  
+    color:white;  
+}  
+.topbar{  
+    width:100%;  
+    padding:15px;  
+    display:flex;  
+    justify-content:space-between;  
+    align-items:center;  
+    background:rgba(255,255,255,0.05);  
+    backdrop-filter:blur(10px);  
+}  
+.profile{  
+    font-size:1rem;  
+}  
+.balance{  
+    background:#111;  
+    padding:8px 15px;  
+    border-radius:20px;  
+    font-weight:bold;  
+}  
+.main{  
+    flex:1;  
+    display:flex;  
+    justify-content:center;  
+    align-items:center;  
+    flex-direction:column;  
+    padding:20px;  
+}  
+.board{  
+    width:90vw;  
+    max-width:340px;  
+    display:grid;  
+    grid-template-columns:repeat(3,1fr);  
+    gap:10px;  
+}  
+.cell{  
+    aspect-ratio:1;  
+    background:#111;  
+    border-radius:12px;  
+    display:flex;  
+    justify-content:center;  
+    align-items:center;  
+    font-size:2.5rem;  
+    cursor:pointer;  
+    transition:0.2s;  
+}  
+.cell:active{  
+    transform:scale(0.95);  
+}  
+.O{color:#00eaff;}  
+.X{color:#ff7b7b;}  
+#status{  
+    margin-top:20px;  
+    text-align:center;  
+    font-size:1.1rem;  
+}  
+.rewardBox{  
+    margin-top:15px;  
+    display:flex;  
+    flex-direction:column;  
+    gap:10px;  
+}  
+.rewardBtn,.restartBtn{  
+    border:none;  
+    padding:12px 20px;  
+    border-radius:12px;  
+    color:white;  
+    cursor:pointer;  
+    font-size:1rem;  
+}  
+.rewardBtn{background:#00b894;}  
+.restartBtn{background:#7d2ae8;}  
+.bottomMenu{  
+    width:100%;  
+    display:flex;  
+    justify-content:space-around;  
+    padding:15px 10px;  
+    background:#111;  
+    border-top:1px solid rgba(255,255,255,0.1);  
+}  
+.menuBtn{  
+    background:none;  
+    border:none;  
+    color:white;  
+    font-size:1rem;  
+    cursor:pointer;  
+}  
+.hidden{display:none;}  
+.card{  
+    width:100%;  
+    max-width:400px;  
+    background:#111;  
+    padding:20px;  
+    border-radius:18px;  
+}  
+.taskItem{  
+    padding:10px;  
+    background:#222;  
+    border-radius:10px;  
+    margin-top:10px;  
+}  
+</style>  
+<script type="module">  
+  
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";  
+  
+import {  
+getFirestore,  
+doc,  
+getDoc,  
+setDoc,  
+updateDoc  
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";  
+  
+const firebaseConfig = {  
+  apiKey: "AIzaSyBGLk-WfinYzZuaC0qu-dzpY_mL6KuYWbc",  
+  authDomain: "r-vox-pepexo.firebaseapp.com",  
+  projectId: "r-vox-pepexo",  
+  storageBucket: "r-vox-pepexo.firebasestorage.app",  
+  messagingSenderId: "991544250422",  
+  appId: "1:991544250422:web:4f728ad459f09196f9c897"  
+};  
+  
+const app = initializeApp(firebaseConfig);  
+const db = getFirestore(app);  
+  
+window.firebaseDb = db;  
+window.firebaseDoc = doc;  
+window.firebaseGetDoc = getDoc;  
+window.firebaseSetDoc = setDoc;  
+window.firebaseUpdateDoc = updateDoc;  
+  
+</script>  
+</head>  
+<body>  
+<div class="topbar">  
+    <div class="profile">👤 Player</div>  
+    <div class="balance" id="balance">🐸 0 PEPE</div>  
+</div>  
+<div class="main">  
+<div id="playSection">  
+<div class="board" id="board"></div>  
+<div id="status"></div>  
+<div class="rewardBox" id="rewardBox"></div>  
+</div>  
+<div id="taskSection" class="hidden">  
+<div class="card">  
+<h2>📋 Tasks</h2>  
+<h3 style="color:#00eaff;">🔥 Limited Tasks</h3>  
+<div class="taskItem">Join Channel = 25 PEPE</div>  
+<div class="taskItem">PTC Ads = Custom Reward</div>  
+<h3 style="color:#00eaff;margin-top:20px;">🎯 Daily Tasks</h3>  
+<div class="taskItem">Watch 500 Ads = 1000 PEPE</div>  
+<div class="taskItem">Win 100 Games = 175 PEPE</div>  
+<div class="taskItem">Draw 50 Games = 75 PEPE</div>  
+<div class="taskItem">Watch 1000 Ads = 1500 PEPE</div>  
+<div class="taskItem">Win 250 Games = 350 PEPE</div>  
+<div class="taskItem">Win 500 Games = 750 PEPE</div>  
+</div>  
+</div>  
+<div id="walletSection" class="hidden">  
+<div class="card">  
+<h2>👛 Wallet</h2>  
+<div class="taskItem">FaucetPay Min Withdraw = 100 PEPE</div>  
+<div class="taskItem">CWallet Min Withdraw = 500 PEPE</div>  
+</div>  
+</div>  
+</div>  
+<div class="bottomMenu">  
+<button class="menuBtn" id="playBtn">🎮 Play</button>  
+<button class="menuBtn" id="taskBtn">📋 Tasks</button>  
+<button class="menuBtn" id="walletBtn">👛 Wallet</button>  
+</div>  
+<script>  
+  
+const boardEl = document.getElementById("board")  
+const statusEl = document.getElementById("status")  
+const rewardBox = document.getElementById("rewardBox")  
+const balanceEl = document.getElementById("balance")  
+  
+const playSection = document.getElementById("playSection")  
+const taskSection = document.getElementById("taskSection")  
+const walletSection = document.getElementById("walletSection")  
+  
+let board = Array(9).fill("")  
+let gameOver = false  
+  
+// Step 1: LocalStorage ko hata kar initial variables banaye
+let pepeBalance = 0  
+const userId = "demo_user"  
+  
+// Step 4: Pehle direct chalne wale updateBalance() ko loadBalance() se badla
+loadBalance()  
+createBoard()  
+  
+/* MENU */  
+document.getElementById("playBtn").onclick = () => {  
+playSection.classList.remove("hidden")  
+taskSection.classList.add("hidden")  
+walletSection.classList.add("hidden")  
+}  
+  
+document.getElementById("taskBtn").onclick = () => {  
+playSection.classList.add("hidden")  
+taskSection.classList.remove("hidden")  
+walletSection.classList.add("hidden")  
+}  
+  
+document.getElementById("walletBtn").onclick = () => {  
+playSection.classList.add("hidden")  
+taskSection.classList.add("hidden")  
+walletSection.classList.remove("hidden")  
+}  
+  
+// Step 2: updateBalance() function jisme LocalStorage ka kaam nahi hai
+function updateBalance(){  
+balanceEl.innerText = `🐸 ${pepeBalance} PEPE`  
+}  
+  
+// Step 3: updateBalance() ke theek neeche loadBalance aur saveBalance functions add kiye
+async function loadBalance(){  
+const userRef = firebaseDoc(  
+firebaseDb,  
+"users",  
+userId  
+)  
+const userSnap = await firebaseGetDoc(userRef)  
+if(userSnap.exists()){  
+pepeBalance = userSnap.data().balance || 0  
+}else{  
+await firebaseSetDoc(userRef,{  
+balance:0  
+})  
+pepeBalance = 0  
+}  
+updateBalance()  
+}  
+  
+async function saveBalance(){  
+const userRef = firebaseDoc(  
+firebaseDb,  
+"users",  
+userId  
+)  
+await firebaseUpdateDoc(userRef,{  
+balance:pepeBalance  
+})  
+}  
+  
+function createBoard(){  
+boardEl.innerHTML = ""  
+  
+board.forEach((val,i)=>{  
+const cell = document.createElement("div")  
+cell.classList.add("cell")  
+  
+if(val){  
+cell.innerText = val  
+cell.classList.add(val)  
+}  
+  
+cell.onclick = ()=>playerMove(i)  
+boardEl.appendChild(cell)  
+})  
+}  
+  
+function playerMove(i){  
+if(board[i] || gameOver) return  
+  
+board[i] = "O"  
+createBoard()  
+  
+if(checkWin("O")) return  
+  
+setTimeout(computerMove,250)  
+}  
+  
+function computerMove(){  
+  
+let bestMove = getBestMove()  
+board[bestMove] = "X"  
+  
+createBoard()  
+checkWin("X")  
+}  
+  
+function getBestMove(){  
+  
+let empty = board.map((v,i)=>v===""?i:null).filter(v=>v!==null)  
+  
+for(let i of empty){  
+board[i] = "X"  
+if(isWinner("X")){  
+board[i] = ""  
+return i  
+}  
+board[i] = ""  
+}  
+  
+for(let i of empty){  
+board[i] = "O"  
+if(isWinner("O")){  
+board[i] = ""  
+return i  
+}  
+board[i] = ""  
+}  
+  
+if(board[4] === "") return 4  
+  
+const corners = [0,2,6,8].filter(i => board[i] === "")  
+  
+if(corners.length > 0){  
+return corners[Math.floor(Math.random()*corners.length)]  
+}  
+  
+return empty[Math.floor(Math.random()*empty.length)]  
+}  
+  
+function isWinner(player){  
+  
+const wins = [  
+[0,1,2],[3,4,5],[6,7,8],  
+[0,3,6],[1,4,7],[2,5,8],  
+[0,4,8],[2,4,6]  
+]  
+  
+return wins.some(w => w.every(i => board[i] === player))  
+}  
+  
+function resetGame(){  
+board = Array(9).fill("")  
+gameOver = false  
+statusEl.innerText = ""  
+rewardBox.innerHTML = ""  
+createBoard()  
+}  
+  
+function checkWin(player){  
+  
+const wins = [  
+[0,1,2],[3,4,5],[6,7,8],  
+[0,3,6],[1,4,7],[2,5,8],  
+[0,4,8],[2,4,6]  
+]  
+  
+for(let w of wins){  
+  
+if(w.every(i=>board[i]===player)){  
+  
+gameOver = true  
+  
+if(player === "O"){  
+statusEl.innerText = "🎉 You Won!"  
+rewardBox.innerHTML = `  
+<button class="rewardBtn" onclick="collectReward(10)">  
+🎥 Watch & Collect 10 PEPE  
+</button>  
+`  
+}else{  
+statusEl.innerText = "🤖 You Lost"  
+rewardBox.innerHTML = `  
+<button class="restartBtn" onclick="resetGame()">  
+🔄 Restart  
+</button>  
+`  
+}  
+  
+return true  
+}  
+}  
+  
+if(!board.includes("")){  
+gameOver = true  
+statusEl.innerText = "😐 Match Draw"  
+rewardBox.innerHTML = `  
+<button class="rewardBtn" onclick="collectReward(5)">  
+🎥 Watch & Collect 5 PEPE  
+</button>  
+`  
+}  
+  
+return false  
+}  
+  
+function collectReward(amount){  
+pepeBalance = Number(pepeBalance) + amount  
+// Step 5: updateBalance() ke thik niche saveBalance() function call add kiya
+updateBalance()  
+saveBalance()  
+alert(`✅ ${amount} PEPE Added`)  
+resetGame()  
+}  
+  
+</script>  
+</body>  
 </html>
